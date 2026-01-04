@@ -1,0 +1,38 @@
+
+// PATCH: src/pages/Admin.tsx — usar supabase.functions.invoke para evitar Invalid JWT
+// Reemplaza SOLO las funciones createUser y deleteUser por las siguientes:
+
+import { supabase } from '../lib/supabaseClient'
+
+const createUser = async () => {
+  try {
+    if (!email || !password) { alert('Email y password requeridos'); return }
+    const { data, error } = await supabase.functions.invoke('admin-create-user', {
+      body: { email, password, role }
+    })
+    if (error) {
+      alert('Error al crear usuario: ' + (error.message || JSON.stringify(error)))
+      return
+    }
+    await loadProfiles()
+    setEmail(''); setPassword(''); setRole('editor')
+  } catch (e) {
+    alert('Error al crear usuario: ' + (e?.message || String(e)))
+  }
+}
+
+const deleteUser = async (user_id: string) => {
+  try {
+    if (!confirm('¿Eliminar usuario?')) return
+    const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+      body: { user_id }
+    })
+    if (error) {
+      alert(error.message || JSON.stringify(error))
+      return
+    }
+    await loadProfiles()
+  } catch (e) {
+    alert('Error al eliminar usuario: ' + (e?.message || String(e)))
+  }
+}
